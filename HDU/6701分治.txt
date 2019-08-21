@@ -1,0 +1,193 @@
+#include <iostream>`
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <cstring>
+#include <deque>
+#include <cmath>
+#include <string>
+#include <stack>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <queue>
+#include <vector>
+#include <time.h>
+#include <list>
+using namespace std;
+#define INF 0x3f3f3f3f
+#define MAXN (300000 + 50)
+#define MAXM 30000
+#define maxn MAXN
+#define eps 1e-8
+#define ll long long
+#define ull unsigned long long
+#define ri register int
+#define per(i, n, m) for (int i = n; i >= m; --i)
+#define rep(i, n, m) for (int i = n; i <= m; ++i)
+#define mian main
+#define mem(a, b) memset(a, b, sizeof a)
+const int MOD = 1e9 + 7;
+#ifndef ONLINE_JUDGE
+#define dbg(x) cout << #x << "=" << x << endl;
+#else
+#define dbg(x)
+#endif
+namespace io
+{
+    const int SIZE = (1 << 21) + 1;
+    char ibuf[SIZE], * iS, * iT, obuf[SIZE], * oS = obuf, * oT = oS + SIZE - 1, c, qu[55];
+    int f, qr;
+    // getchar
+#define gc() (iS == iT ? (iT = (iS = ibuf) + fread(ibuf, 1, SIZE, stdin), (iS == iT ? EOF : *iS++)) : *iS++)
+// print the remaining part
+    inline void flush()
+    {
+        fwrite(obuf, 1, oS - obuf, stdout);
+        oS = obuf;
+    }
+    // putchar
+    inline void putc(register char x)
+    {
+        *oS++ = x;
+        if (oS == oT)
+            flush();
+    }
+    // input a signed integer
+    template <class I>
+    inline void read(I& x)
+    {
+        for (f = 1, c = gc(); c < '0' || c > '9'; c = gc())
+            if (c == '-')
+                f = -1;
+        for (x = 0; c <= '9' && c >= '0'; c = gc())
+            x = (x << 1) + (x << 3) + (c & 15);
+        x *= f;
+    }
+    // print a signed integer
+    template <class I>
+    inline void print(I x)
+    {
+        if (!x)
+            putc('0');
+        if (x < 0)
+            putc('-'), x = -x;
+        while (x)
+            qu[++qr] = x % 10 + '0', x /= 10;
+        while (qr)
+            putc(qu[qr--]);
+    }
+    //no need to call flush at the end manually!
+    struct Flusher_
+    {
+        ~Flusher_() { flush(); }
+    } io_flusher_;
+} // namespace io
+using io::read;
+using io::print;
+using io::putc;
+inline int qpow(ri a, ri b)
+{
+    ri ans = 1;
+    for (; b; b >>= 1, a = (ll)a * a % MOD)
+        if (b & 1)
+            ans = (ll)ans * a % MOD;
+    return ans;
+}
+inline int gcd(int a, int b)
+{
+    return b ? gcd(b, a % b) : a;
+}
+int n, k;
+ll ans;
+int a[MAXN], dp[MAXN][20],vis[MAXN],left1[MAXN],right1[MAXN];
+void st()
+{
+    for (int i = 1; i <= n; i++) dp[i][0] = i;
+    for (int j = 1; (1 << j) <= n; j++)
+    {
+        for (int i = 1; i + (1 << j) - 1 <= n; i++)
+        {
+            if (a[dp[i][j - 1]] > a[dp[i + (1 << (j - 1))][j - 1]]) dp[i][j] = dp[i][j - 1];
+            else dp[i][j] = dp[i + (1 << (j - 1))][j - 1];
+        }
+    }
+}
+int query(int l, int r)
+{
+    int k = 0;
+    while (l + (1 << (k + 1)) - 1 <= r) k++;
+    if (a[dp[l][k]] > a[dp[r - (1 << k) + 1][k]]) return dp[l][k];
+    return dp[r - (1 << k) + 1][k];
+}
+void solve(int l, int r)
+{
+    if (l >r) return;
+    int mid = query(l, r);
+    int left = mid - l, right = r - mid;
+    if (left > right)
+    {
+        //int min =max(1,)
+        for (int i = mid ; i <= r; ++i)
+        {
+            int now = a[mid] - k;
+            int max_l = i + 1 - now;
+            int l1 = max(l, left1[i]);
+            max_l = min(mid, max_l);
+            if (l1 <= max_l) ans += (max_l - l1 + 1);
+        }
+    }
+    else
+    {
+        for (int i = l; i <= mid; ++i)
+        {
+            int now = a[mid] - k;
+            int min_r = i + now - 1;
+            int r1 = min(r, right1[i]);
+            min_r = max(mid, min_r);
+            if (r1>= min_r) ans += (r1 - min_r + 1);
+        }
+    }
+    solve(l, mid - 1);
+    solve(mid + 1, r);
+}
+int main()
+{
+#ifndef ONLINE_JUDGE
+    int startTime = clock();
+#endif
+    int T;
+    read(T);
+    while(T--)
+    {
+        read(n); read(k);
+        rep(i, 1, n) read(a[i]);
+        ans = 0;
+        st();
+        rep(i, 1, n)
+        {
+            vis[i] = 0;
+        }
+    //    cout << "hh" << query(1,5) << endl;
+        left1[1] = 1, vis[a[1]] = 1;
+        rep(i, 2, n)
+        {
+            if (vis[a[i]]) left1[i] = max(left1[i - 1], vis[a[i]] + 1);
+            else left1[i] = left1[i - 1];
+            vis[a[i]] = i;
+        }
+        rep(i, 1, n) vis[i] = 0;
+        right1[n] = n, vis[a[n]] = n;
+        for (int i = n - 1; i >= 1; --i)
+        {
+            if (vis[a[i]]) right1[i] = min(right1[i + 1], vis[a[i]] - 1);
+            else right1[i] = right1[i +1];
+            vis[a[i]] = i;
+        }
+        solve(1, n);
+        printf("%lld\n", ans);
+    }
+#ifndef ONLINE_JUDGE
+    printf("Time = %dms\n", clock() - startTime);
+#endif
+}
